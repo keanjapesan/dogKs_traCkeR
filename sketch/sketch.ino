@@ -1,14 +1,35 @@
 #define ALARM 12
+String authorizedID = "190077761F07";
+String incomingData;   // for incoming serial data
+char stream;
 
 void setup() {
+  Serial1.begin(9600);     // opens serial port, sets data rate to 9600 bps
+  Serial.begin(9600);
   pinMode(ALARM, OUTPUT);
 }
 
 void loop() {
-  if(false){
-    alarm();
+
+  // send data only when you receive data:
+  if (Serial1.available() > 0) {
+    // read the incoming byte:
+    stream = Serial1.read();
+    incomingData += stream;
   }
-  delay(10000);
+
+  if (incomingData.length() > 13) {
+    Serial.print("I received: ");
+    Serial.println(incomingData);
+    if(incomingData.indexOf(authorizedID)>=0){
+      Serial.print("Starting Alarm!!!");
+      alarm();
+      delay(5000);
+      Serial.print("Stopped Alarm");
+    }
+    incomingData = "";
+    Serial1.flush();
+  }
 }
 
 void alarm(){
