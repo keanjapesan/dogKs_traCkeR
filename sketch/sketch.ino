@@ -3,6 +3,16 @@
 String authorizedID = "190077761F07";
 String incomingData;   // for incoming serial data
 char stream;
+int sensorPin = A0;    // select the input pin for the potentiometer
+//int irSensor1Pin = A0;
+//int irSensor2Pin = A1;
+int sensorValue = 0;  // variable to store the value coming from the sensor
+// int irSensor1Value = 0;
+// int irSensor2Value = 0;
+
+boolean ir_sensor_1 = false;
+boolean ir_sensor_2 = false;
+boolean rfid_sensor = false;
 
 void setup() {
   Serial1.begin(9600);     // opens serial port, sets data rate to 9600 bps
@@ -12,6 +22,13 @@ void setup() {
 }
 
 void loop() {
+  sensorValue = analogRead(sensorPin);
+  Serial.println(sensorValue);
+
+  if (sensorValue >= 900) {
+    ir_sensor_1 = true;
+    ir_sensor_2 = true;
+  }
 
   // send data only when you receive data:
   if (Serial1.available() > 0) {
@@ -24,13 +41,21 @@ void loop() {
     Serial.print("I received: ");
     Serial.println(incomingData);
     if(incomingData.indexOf(authorizedID)>=0){
-      Serial.println("Starting Alarm!!!");
-      alarm();
-      //delay(5000);
-      Serial.println("Stopped Alarm");
+      rfid_sensor = true;
     }
     incomingData = "";
-    flushReceive(); //Serial1.flush();
+    flushReceive();
+  }
+
+  takeDecision();
+}
+
+void takeDecision(){
+  if (ir_sensor_1 && ir_sensor_2 && rfid_sensor){
+    Serial.println("Starting Alarm!!!");
+    alarm();
+    Serial.println("Stopped Alarm");
+    ir_sensor_1 = ir_sensor_2 = rfid_sensor = false;
   }
 }
 
